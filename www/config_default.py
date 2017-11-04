@@ -8,6 +8,6 @@ configs = {
         'db': 'python_db'
     },
     'session': {
-        'secret': 'Awesome'
+        'secret': 'Python'
     }
 }
