@@ -6,15 +6,16 @@ from jinja2 import Environment, FileSystemLoader
 from www.orm import create_pool
 from www.coroweb import add_routes, add_static
 
+
 def init_jinja2(app, **kw):
     logging.info('init jinja2...')
     options = dict(
-        autoescape=kw.get('autoescape', True),
-        block_start_string=kw.get('block_start_string', '{%'),
-        block_end_string=kw.get('block_end_string', '%}'),
-        variable_start_string=kw.get('variable_start_string', '{{'),
-        variable_end_string=kw.get('variable_end_string', '}}'),
-        auto_reload=kw.get('auto_reload', True)
+        autoescape = kw.get('autoescape', True),
+        block_start_string = kw.get('block_start_string', '{%'),
+        block_end_string = kw.get('block_end_string', '%}'),
+        variable_start_string = kw.get('variable_start_string', '{{'),
+        variable_end_string = kw.get('variable_end_string', '}}'),
+        auto_reload = kw.get('auto_reload', True)
     )
     path = kw.get('path', None)
     if path is None:
@@ -31,7 +32,7 @@ def init_jinja2(app, **kw):
 async def logger_factory(app, handler):
     async def logger(request):
         logging.info('Request: %s %s' % (request.method, request.path))
-        return (await handler(request))
+        return await handler(request)
     return logger
 
 
@@ -44,7 +45,7 @@ async def data_factory(app, handler):
             elif request.content_type.startswith('application/x-www-form-urlencoded'):
                 request.__data__ = await request.post()
                 logging.info('request form: %s' % str(request.__data__))
-        return (await handler(request))
+        return await handler(request)
     return parse_data
 
 
@@ -74,11 +75,11 @@ async def response_factory(app, handler):
                 resp = web.Response(body=app['__templating__'].get_template(template).render(**r).encode('utf-8'))
                 resp.content_type = 'text/html;charset=utf-8'
                 return resp
-        if isinstance(r, int) and r >= 100 and r < 600:
+        if isinstance(r, int) and 100 <= r < 600:
             return web.Response(r)
         if isinstance(r, tuple) and len(r) == 2:
             t, m = r
-            if isinstance(t, int) and t >= 100 and t < 600:
+            if isinstance(t, int) and 100 <= t < 600:
                 return web.Response(t, str(m))
         # default:
         resp = web.Response(body=str(r).encode('utf-8'))
@@ -99,10 +100,6 @@ def datetime_filter(t):
         return u'%s天前' % (delta // 86400)
     dt = datetime.fromtimestamp(t)
     return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
-
-
-def index(request):
-    return web.Response(body=b'<h1>Hello Python</h1>', content_type='text/html')
 
 
 async def init(loop):
